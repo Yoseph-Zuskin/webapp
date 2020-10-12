@@ -101,7 +101,7 @@ fig = px.line(df[start_date:end_date],
 fig.update_layout(showlegend=False)
 plot.plotly_chart(fig)
 
-series.subheader('Selected time series data:')
+series.subheader('Selected data:')
 series.dataframe(
     df[start_date:end_date].to_frame().set_index(
         df[start_date:end_date].index.strftime('%Y/%m/%d')))
