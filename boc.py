@@ -4,11 +4,11 @@ Streamlit web application for exploring Bank of Canada public data.
 '''
 import requests
 from io import BytesIO
+from base64 import b64encode
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 from pyvalet import ValetInterpreter
-__version__ = '0.0.1'
 # -------------------------------------------------------------------------------
 # Create client for retrieving data using the Bank of Canada's PyValet API
 boc = ValetInterpreter()
@@ -25,11 +25,10 @@ boc_logo = BytesIO(boc_logo.content)
 st.sidebar.image(boc_logo, use_column_width=True)
 
 st.title('Bank of Canada [Open Data](https://github.com/tylercroberts/pyvalet) '
-    'Explorer Proof of Concept')
+    'Explorer')
 
 st.header('**Developer:** [Yoseph Zuskin](https://linkedin.com/in/Yoseph-Zuskin)'
-    ', **Source Code:** [GitHub](https://github.com/Yoseph-Zuskin/webapp)'
-    f', **Version:** {__version__}')
+    ', **Source Code:** [GitHub](https://github.com/Yoseph-Zuskin/webapp)')
 
 groups = boc.list_groups()
 group_options = groups.label[groups.label != 'delete']
@@ -65,14 +64,16 @@ def get_time_serie(chosen_series):
     containsdigit = lambda s: any(i.isdigit() for i in s)
     df = df[df.id.apply(containsdigit)] # Filter out non-date index values
     df = df[df.label.apply(containsdigit)] # Filter out non-numeric values
-    df.id = pd.to_datetime(df.id, format='%Y-%m-%d')
+    try:
+        df.id = pd.to_datetime(df.id, format='%Y-%m-%d')
+    except:
+        df.id = pd.to_datetime(df.id)
     df = df.set_index(df.id.rename('Date'))
     df = df.label.rename('Value')
     return meta, df 
 meta, df = get_time_serie(chosen_series)
 
-st.markdown(f'You have selected ***{meta.label}:*** '
-    f'*{meta.description}*:')
+st.markdown(f'You have selected ***{meta.description}***:')
 
 invalid_date_range = False
 start_date = st.sidebar.date_input('Start date:', df.index[-min(len(df), 24)])
@@ -91,11 +92,59 @@ if invalid_date_range:
 
 plot, series = st.beta_columns([3, 1])
 
-fig = px.line(df[start_date:end_date])
+toggle_smoothing = st.sidebar.select_slider(
+    label='Toggle spline smoothing of the plot:',
+    options=['no', 'yes'],
+    key='toggle_smoothing')
+fig = px.line(df[start_date:end_date],
+    line_shape='linear' if toggle_smoothing == 'no' else 'spline')
 fig.update_layout(showlegend=False)
 plot.plotly_chart(fig)
 
-series.subheader('The actual time series data:')
+series.subheader('Selected time series data:')
 series.dataframe(
     df[start_date:end_date].to_frame().set_index(
-        df[start_date:end_date].index.strftime('%Y-%m-%d')))
+        df[start_date:end_date].index.strftime('%Y/%m/%d')))
+
+def download_link(object_to_download, download_filename, download_link_text):
+    """
+    Generates a link to download the given object_to_download.
+    Author: Chad Mitchell (modified by Yoseph Zuskin)
+    Source: https://discuss.streamlit.io/t/4052
+
+    object_to_download : str, pd.DataFrame
+        The object to be downloaded
+    download_filename : str
+        Filename and extension of file (e.g. mydata.csv, some_txt_output.txt)
+    download_link_text : str
+        Text to display for download link
+
+    Examples:
+    download_link(df, 'YOUR_DF.csv', 'Click here to download data!')
+    download_link('str', 'YOUR_STRING.txt', 'Click here to download your text!')
+
+    """
+    if isinstance(object_to_download, (pd.DataFrame, pd.Series)):
+        object_to_download = object_to_download.to_csv()
+
+    # some strings <-> bytes conversions necessary here
+    b64 = b64encode(object_to_download.encode()).decode()
+    
+    link = (f'<a href="data:file/txt;base64,{b64}" '
+        f'download="{download_filename}">{download_link_text}</a>')
+
+    return link
+
+if st.sidebar.button('Download Selection as CSV'):
+    tmp_download_link = download_link(
+        df[start_date:end_date].rename(meta.label),
+        f'{meta.label.replace(" ", "_")}.csv',
+        'Click here to download the data within the time range you selected!')
+    st.sidebar.markdown(tmp_download_link, unsafe_allow_html=True)
+
+if st.sidebar.button('Download Entire Series as CSV'):
+    tmp_download_link = download_link(
+        df.rename(meta.label),
+        f'{meta.label.replace(" ", "_")}.csv',
+        'Click here to download the entire series you selected!')
+    st.sidebar.markdown(tmp_download_link, unsafe_allow_html=True)
