@@ -120,7 +120,8 @@ with st.beta_expander(label='Select time series from group', expanded=True):
 
 invalid_date_range = False
 min_streamlit_date = pd.Timestamp.today() - pd.DateOffset(years=10)
-start_date = st.sidebar.date_input('Start date:', min_streamlit_date)
+start_date = st.sidebar.date_input('Start date:', min(
+    min_streamlit_date, df.index[0]))
 if start_date < df.index[0] or start_date > df.index[-1]:
     st.sidebar.error('Error: Start date must be within the time series range of '
         f'{df.index[0].date()} to {df.index[-1].date()}')
@@ -154,7 +155,7 @@ with st.beta_expander(label=f'Display selected time series', expanded=False):
 
 with st.beta_expander(label=f'Plot selected time series', expanded=True):
     toggle_smoothing = st.checkbox(
-        label='Toggle spline smoothing of the plot',
+        label='Toggle spline smoothing',
         key='toggle_smoothing')
         
     try:
