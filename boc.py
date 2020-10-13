@@ -108,7 +108,8 @@ group_details, group_series = boc.get_group_detail(
     response_format='csv')
 
 series_options = group_series.set_index(group_series.name).label.tolist()
-with st.beta_expander(label='Select time series from group', expanded=True):
+with st.beta_expander(label=f'Select time series from "{chosen_group}" group',
+                      expanded=True):
     chosen_series = st.multiselect(
         label='Pick a time series from the selected data group:',
         options=series_options,
@@ -120,7 +121,7 @@ with st.beta_expander(label='Select time series from group', expanded=True):
 
 invalid_date_range = False
 min_streamlit_date = pd.Timestamp.today() - pd.DateOffset(years=10)
-start_date = st.sidebar.date_input('Start date:', min(
+start_date = st.sidebar.date_input('Start date:', max(
     min_streamlit_date, df.index[0]))
 if start_date < df.index[0] or start_date > df.index[-1]:
     st.sidebar.error('Error: Start date must be within the time series range of '
@@ -135,25 +136,25 @@ if invalid_date_range:
     st.warning('Valid start and end dates must be chosen to proceed')
     st.stop()
 
-if st.sidebar.button('Download Selection as CSV'):
+if st.sidebar.button('Download Filtered Selection as CSV'):
     tmp_download_link = download_link(
         df[start_date:end_date],
         f'{chosen_group.replace(" ", "_")}.csv',
         'Click here to download the data within the time range you selected!')
     st.sidebar.markdown(tmp_download_link, unsafe_allow_html=True)
 
-if st.sidebar.button('Download Entire Series as CSV'):
+if st.sidebar.button('Download Entire Selection as CSV'):
     tmp_download_link = download_link(
         df,
         f'{chosen_group.replace(" ", "_")}.csv',
         'Click here to download the entire series you selected!')
     st.sidebar.markdown(tmp_download_link, unsafe_allow_html=True)
 
-with st.beta_expander(label=f'Display selected time series', expanded=False):
+with st.beta_expander(label='Display selected time series', expanded=False):
     st.dataframe(df[start_date:end_date].set_index(
             df[start_date:end_date].index.strftime('%Y/%m/%d')))
 
-with st.beta_expander(label=f'Plot selected time series', expanded=True):
+with st.beta_expander(label='Plot selected time series', expanded=True):
     toggle_smoothing = st.checkbox(
         label='Toggle spline smoothing',
         key='toggle_smoothing')
