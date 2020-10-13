@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 app_details = '''
 Welcome to the unofficial Bank of Canada open data explorer. This website is an
-interactive environment for discovering the data which the Bank of Canada makes
-available to the public and downloading the selected data. In the future, this
+interactive environment for discovering the data which the Bank of Canada [makes
+available to the public]{} and downloading the selected data. In the future, this
 application will contain built-in forecasting tools, which are currently under
 developement. This application was developed using Streamlit and Plotly, and is
 hosted for free using Heroku apps. Thanks you for checking out this application! 
 Please click above this text to collapse it for a less crowded view :smiley:
-'''
+'''.format('(https://github.com/tylercroberts/pyvalet)')
 
 import requests
 from io import BytesIO
@@ -66,7 +66,7 @@ def download_link(object_to_download, download_filename, download_link_text):
         f'download="{download_filename}">{download_link_text}</a>')
 
     return link
-
+# -------------------------------------------------------------------------------
 # Create client for retrieving data using the Bank of Canada's PyValet API
 boc = ValetInterpreter()
 
@@ -108,14 +108,14 @@ group_details, group_series = boc.get_group_detail(
     response_format='csv')
 
 series_options = group_series.set_index(group_series.name).label.tolist()
-with st.beta_expander(label=f'Select time series from "{chosen_group}" group',
+with st.beta_expander(label='Select time series from data group',
                       expanded=True):
     chosen_series = st.multiselect(
-        label='Pick a time series from the selected data group:',
+        label=f'Time series within the "{chosen_group}" data group:',
         options=series_options,
         key='chosen_series')
     if chosen_series == []:
-        st.warning('A specific time series must be selected to proceed')
+        st.warning('At least one time series must be selected to proceed')
         st.stop()
     df = load_time_series(chosen_series)
 
