@@ -87,8 +87,7 @@ st.title(':bank: Bank of Canada :maple_leaf: [Open Data]'
 with st.beta_expander(label='Application details', expanded=True):
     st.header(
         '**Developer:** [Yoseph Zuskin](https://linkedin.com/in/Yoseph-Zuskin)'
-        ', **Source Code:** [GitHub](https://github.com/Yoseph-Zuskin/webapp)'
-        ', **Last Update:** 2020/10/12')
+        ', **Source Code:** [GitHub](https://github.com/Yoseph-Zuskin/webapp)')
     st.markdown(app_details)
 
 groups = boc.list_groups()
