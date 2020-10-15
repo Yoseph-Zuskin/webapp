@@ -135,8 +135,8 @@ with st.beta_expander(label='Select time series from data group',
 invalid_date_range = False
 min_streamlit_date = pd.Timestamp.today() - pd.DateOffset(years=10)
 if overwrite_start_date is None:
-    start_date = st.sidebar.date_input('Select start date:', max(
-        min_streamlit_date, df.index[0]))
+    start_date = st.sidebar.date_input('Select start date:',
+        df.index[0] if df.index[0] < min_streamlit_date else min_streamlit_date)
 elif overwrite_start_date is not None:
     start_date = pd.to_datetime(overwrite_start_date)
 if start_date < df.index[0] or start_date > df.index[-1]:
