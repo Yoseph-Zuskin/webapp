@@ -44,7 +44,7 @@ def download_link(object_to_download, download_filename, download_link_text):
     Author: Chad Mitchell (modified by Yoseph Zuskin)
     Source: https://discuss.streamlit.io/t/4052
 
-    object_to_download : str, pd.DataFrame
+    object_to_download : pandas.DataFrame
         The object to be downloaded
     download_filename : str
         Filename and extension of file (e.g. mydata.csv, some_txt_output.txt)
@@ -53,13 +53,10 @@ def download_link(object_to_download, download_filename, download_link_text):
 
     Examples:
     download_link(df, 'YOUR_DF.csv', 'Click here to download data!')
-    download_link('str', 'YOUR_STRING.txt', 'Click here to download your text!')
-
     '''
     if isinstance(object_to_download, (pd.DataFrame, pd.Series)):
         object_to_download = object_to_download.to_csv()
 
-    # some strings <-> bytes conversions necessary here
     b64 = b64encode(object_to_download.encode()).decode()
     
     link = (f'<a href="data:file/txt;base64,{b64}" '
