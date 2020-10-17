@@ -1,13 +1,31 @@
 # -*- coding: utf-8 -*-
 app_details = '''
-Welcome to the unofficial Bank of Canada open data explorer. This website is an
-interactive environment for discovering the data which the Bank of Canada [makes
-available to the public]{} and downloading the selected data. In the future, this
-application will contain built-in forecasting tools, which are currently under
-developement. This application was developed using Streamlit and Plotly, and is
-hosted for free using Heroku apps. Thanks you for checking out this application! 
-Please click above this text to collapse it for a less crowded view :smiley:
-'''.format('(https://github.com/tylercroberts/pyvalet)')
+:wave:Welcome to the unofficial Bank of Canada open data exploration (and
+forecasting coming soon) web application. Please click on "Application details"
+above :point_up: this text to minimize it for a less crowded view :smiley:. If
+you want to learn more about this web application, continue reading this section,
+otherwise you may begin your exploration by selecting a data group on the sidebar
+that you will find on the left :point_left:.
+
+### Website Overview
+This website is an interactive environment for discovering the data which the
+Bank of Canada [makes available to the public]{}. This application is hosted for
+free on [Heroku]{} and was developed using the following Python 3 libraries:
+* Pandas ([website]{}, [documentation]{}) for time series data handling
+* Streamlit ([website]{}, [documentation]{}) for the front-end GUI
+* Plotly ([website]{}, [documentation]{}) for interactive plotting
+
+### :pray: Thank you for checking out this application:grey_exclamation: 
+'''.format(
+    '(https://github.com/tylercroberts/pyvalet)',
+    '(https://www.heroku.com/)',
+    '(https://pandas.pydata.org/)',
+    '(https://pandas.pydata.org/docs/)',
+    '(https://www.streamlit.io/)',
+    '(https://docs.streamlit.io/en/stable/)',
+    '(https://plotly.com/)',
+    '(https://plotly.com/python/)'
+)
 import requests
 from io import BytesIO
 from base64 import b64encode
@@ -71,7 +89,7 @@ with st.beta_expander(label='Application details', expanded=True):
     st.markdown(app_details)
 # -------------------------------------------------------------------------------
 @st.cache
-def load_time_series(chosen_series, group_series):
+def load_time_series(chosen_series, group_series, api):
     r'''
     Retrieve metadata and data for the chosen time series
     
@@ -81,6 +99,8 @@ def load_time_series(chosen_series, group_series):
         List of the time series selected from the chosen data group
     group_series : pandas.DataFrame
         Tabular data contain names, labels, and descriptions of the time series
+    api : pyvalet.ValetInterpreter
+        Bank of Canada open data API client instance
     
     Returns:
     --------
@@ -94,38 +114,52 @@ def load_time_series(chosen_series, group_series):
     data = pd.DataFrame()
     for series in chosen_series:
         selection = group_series[group_series.label==series].name.values[0]
-        meta, df = boc.get_series_observations(selection, response_format='csv')
+        meta, df = api.get_series_observations(
+            selection,
+            response_format='csv'
+        )
         contains_digit = lambda s: any(i.isdigit() for i in s)
         df = df[df.id.apply(contains_digit)] # Filter out non-date index values
         df = df[df.label.apply(contains_digit)] # Filter out non-numeric values
+        
         try:
-            df.id = pd.to_datetime(df.id, format='%Y-%m-%d')
+            df.id = pd.to_datetime(
+                df.id,
+                format='%Y-%m-%d'
+            )
         except:
             df.id = pd.to_datetime(df.id)
+        
         df = df.set_index(df.id)
         df = df.label.rename(meta.label)
-        data = pd.concat([data, df], axis=1)
+        
+        data = pd.concat(
+            [data, df],
+            axis=1
+        )
     data = data.set_index(pd.to_datetime(data.index.rename('Date')))
     data.index.freq = pd.infer_freq(data.index)
     return data
 # -------------------------------------------------------------------------------
-boc = ValetInterpreter() # API Client for the Bank of Canada's open data
-groups = boc.list_groups() # Retrieve list of available data groups
+api_client = ValetInterpreter() # API Client for the Bank of Canada's open data
+groups = api_client.list_groups() # Retrieve list of available data groups
 group_options = groups.label[groups.label != 'delete'] # Filter data groups list
 
 # Enable selection of a specific data group using a selectbox in the sidebar
 chosen_group = st.sidebar.selectbox(
     label='Pick a group from which to select a time series:',
     options=['Click here to select...'] + group_options.tolist(),
-    key='chosen_group')
+    key='chosen_group'
+)
 if chosen_group == 'Click here to select...':
     st.warning('A Bank of Canada data group must be selected to proceed')
     st.stop()
 
 # Retrieve metadata and data on the chosen data group
-group_details, group_series = boc.get_group_detail(
+group_details, group_series = api_client.get_group_detail(
     groups[groups.label == chosen_group].name.values[0],
-    response_format='csv')
+    response_format='csv'
+)
 # Parse the list of time series available in the selected data group
 series_options = group_series.set_index(group_series.name).label.tolist()
 # -------------------------------------------------------------------------------
@@ -139,7 +173,7 @@ with st.beta_expander(label='Select time series from data group',
     if chosen_series == []:
         st.warning('At least one time series must be selected to proceed')
         st.stop()
-    df = load_time_series(chosen_series, group_series)
+    df = load_time_series(chosen_series, group_series, api_client)
     st.write('Please note that Streamlit limits date selection to last 10 years')
     if st.button('So you can click here to enable manual entry of any date'):
         overwrite_start_date = st.sidebar.text_input(
@@ -205,20 +239,26 @@ if st.sidebar.button('Download Entire Selection as CSV'):
     st.sidebar.markdown(tmp_download_link, unsafe_allow_html=True)
 # -------------------------------------------------------------------------------
 # Expander section to display the selected time series data in tabular format
-with st.beta_expander(label='Display selected time series'):
-    st.dataframe(df[start_date:end_date].set_index(
-            df[start_date:end_date].index.strftime('%Y/%m/%d')))
-
+with st.beta_expander(label='Display selected time series data'):
+    st.dataframe(
+        df[start_date:end_date].set_index(
+            df[start_date:end_date].index.strftime('%Y/%m/%d')
+        )
+    )
 # Expander section to display the selected time series data as interactive plot
-with st.beta_expander(label='Plot selected time series', expanded=True):
+with st.beta_expander(label='Plot selected time series data'):
     toggle_smoothing = st.checkbox(
         label='Toggle spline smoothing',
         key='toggle_smoothing')        
     try: # Spline smoothing option of plots with few observations
-        fig = px.line(df[start_date:end_date],
-            line_shape='spline' if toggle_smoothing else 'linear')
+        fig = px.line(
+            df[start_date:end_date],
+            line_shape='spline' if toggle_smoothing else 'linear'
+        )
     except: # Spline smoothing option of plots with many observations
-        fig = px.line(df[start_date:end_date],
-            line_shape='hv' if toggle_smoothing else 'linear')
+        fig = px.line(
+            df[start_date:end_date],
+            line_shape='hv' if toggle_smoothing else 'linear'
+        )
     fig.update_xaxes(rangeslider_visible=True)
     st.plotly_chart(fig, use_container_width=True)
