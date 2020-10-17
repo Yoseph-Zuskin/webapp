@@ -33,4 +33,4 @@ docs/_build/
 
 # Camtasia files
 demo/
-.tscproj
+*.tscproj
