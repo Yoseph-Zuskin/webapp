@@ -1,4 +1,4 @@
-<h1 align="center">Bank of Canada Open Data Explorer</h1>
+<h1 align="center"><a href="https://bankofcanada.herokuapp.com/">Bank of Canada Open Data Explorer</a></h1>
 
 <h2 align="center">Streamlit Web Application Documentation</h2>
 
@@ -13,8 +13,6 @@
 <a href="https://github.com/Yoseph-Zuskin/webapp/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Yoseph-Zuskin/webapp"></a>
 <a href="https://github.com/Yoseph-Zuskin/webapp/"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
 </p>
-
-# [Click Here to Launch the Web Application!](http://bankofcanada.herokuapp.com/)
 
 ## Contents
 
@@ -68,8 +66,8 @@ Schell script and Procfile used by [Heroku]('https://www.heroku.com/') to spin u
 files which are used to orchestrate this web application:
 ```
 - src
-    - main.py`
-    - custom.py`
+    - main.py
+    - custom.py
 - Procfile
 - requirements.txt
 - setup.sh
