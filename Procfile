@@ -1,1 +1,1 @@
-web: sh setup.sh && streamlit run boc.py
+web: sh setup.sh && streamlit run src/main.py
