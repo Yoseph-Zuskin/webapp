@@ -64,14 +64,16 @@ and play around with the code on your own. :pray: Thank you for your interest in
 This repository contains the Python code for the Bank of Canada Open Data Explorer web application, as well as some accompanying
 Schell script and Procfile used by [Heroku]('https://www.heroku.com/') to spin up the website upon deployment. Below are the main
 files which are used to orchestrate this web application:
-```
-- src
-    - main.py
-    - custom.py
-- Procfile
-- requirements.txt
-- setup.sh
-```
+
+    .
+    ├── src
+    │   ├── main.py
+    │   └── custom.py
+    ├── Procfile
+    ├── requirements.txt
+    ├── setup.sh
+    └── ...
+
 The other files contained within this repository include the license, readme file, and images used within the readme file
 
 <a id='section02c'></a>
@@ -79,10 +81,10 @@ The other files contained within this repository include the license, readme fil
 ### COMING SOON: Time Series Forecasting
 
 Currently under development is another feature to this web application which will enable easy time series forecasting.
-The plan is to initially begin with the Auto-ARIMA and Facebook Prophet models, and enable users to not only create
-their own models on this web application, but also export a Python script or IPython notebook that will let users work
-with the models they create on local or cloud environments of their choosing, so long as they ahve Python 3 and the
-dependencies listed in the `requirements.txt` file.
+The plan is to initially begin with the [Auto-ARIMA](http://alkaline-ml.com/pmdarima/#) and [Facebook Prophet]()
+models, and enable users to not only create their own models on this web application, but also export a Python script
+or IPython notebook that will let users work with the models they create on local or cloud environments of their choosing,
+so long as they have Python 3 and the dependencies listed in the `requirements.txt` file installed.
 
 <a id='section03'></a>
 
